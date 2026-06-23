@@ -1,0 +1,17 @@
+CUSTOMERS = {
+    "C001": {"id": "C001", "name": "Alice Johnson",     "email": "alice.johnson@email.com",  "phone": "+1-555-0101", "tier": "Gold",     "join_date": "2021-03-15", "refunds_this_year": 0, "total_orders": 8,  "flagged": False},
+    "C002": {"id": "C002", "name": "Bob Smith",         "email": "bob.smith@email.com",      "phone": "+1-555-0102", "tier": "Silver",   "join_date": "2022-06-20", "refunds_this_year": 1, "total_orders": 4,  "flagged": False},
+    "C003": {"id": "C003", "name": "Carol Davis",       "email": "carol.davis@email.com",    "phone": "+1-555-0103", "tier": "Platinum", "join_date": "2020-01-10", "refunds_this_year": 3, "total_orders": 22, "flagged": True},
+    "C004": {"id": "C004", "name": "David Wilson",      "email": "david.wilson@email.com",   "phone": "+1-555-0104", "tier": "Bronze",   "join_date": "2024-01-05", "refunds_this_year": 0, "total_orders": 1,  "flagged": False},
+    "C005": {"id": "C005", "name": "Emma Brown",        "email": "emma.brown@email.com",     "phone": "+1-555-0105", "tier": "Gold",     "join_date": "2021-09-12", "refunds_this_year": 1, "total_orders": 12, "flagged": False},
+    "C006": {"id": "C006", "name": "Frank Miller",      "email": "frank.miller@email.com",   "phone": "+1-555-0106", "tier": "Silver",   "join_date": "2022-11-30", "refunds_this_year": 0, "total_orders": 5,  "flagged": False},
+    "C007": {"id": "C007", "name": "Grace Lee",         "email": "grace.lee@email.com",      "phone": "+1-555-0107", "tier": "Platinum", "join_date": "2019-07-22", "refunds_this_year": 0, "total_orders": 35, "flagged": False},
+    "C008": {"id": "C008", "name": "Henry Taylor",      "email": "henry.taylor@email.com",   "phone": "+1-555-0108", "tier": "Bronze",   "join_date": "2023-08-14", "refunds_this_year": 0, "total_orders": 2,  "flagged": False},
+    "C009": {"id": "C009", "name": "Isabella Anderson", "email": "isabella.a@email.com",     "phone": "+1-555-0109", "tier": "Silver",   "join_date": "2022-04-05", "refunds_this_year": 2, "total_orders": 9,  "flagged": False},
+    "C010": {"id": "C010", "name": "James Martinez",    "email": "james.m@email.com",        "phone": "+1-555-0110", "tier": "Gold",     "join_date": "2021-12-01", "refunds_this_year": 1, "total_orders": 15, "flagged": False},
+    "C011": {"id": "C011", "name": "Karen Thomas",      "email": "karen.t@email.com",        "phone": "+1-555-0111", "tier": "Bronze",   "join_date": "2023-10-20", "refunds_this_year": 0, "total_orders": 3,  "flagged": False},
+    "C012": {"id": "C012", "name": "Liam Jackson",      "email": "liam.j@email.com",         "phone": "+1-555-0112", "tier": "Silver",   "join_date": "2022-02-14", "refunds_this_year": 0, "total_orders": 7,  "flagged": False},
+    "C013": {"id": "C013", "name": "Mia White",         "email": "mia.white@email.com",      "phone": "+1-555-0113", "tier": "Gold",     "join_date": "2021-05-30", "refunds_this_year": 1, "total_orders": 11, "flagged": False},
+    "C014": {"id": "C014", "name": "Noah Harris",       "email": "noah.h@email.com",         "phone": "+1-555-0114", "tier": "Platinum", "join_date": "2020-08-18", "refunds_this_year": 0, "total_orders": 28, "flagged": False},
+    "C015": {"id": "C015", "name": "Olivia Martin",     "email": "olivia.m@email.com",       "phone": "+1-555-0115", "tier": "Bronze",   "join_date": "2023-06-10", "refunds_this_year": 1, "total_orders": 2,  "flagged": False},
+}

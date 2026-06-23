@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ShopEase Refund Agent</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg0:#020617;--bg1:#0f172a;--bg2:#1e293b;--bg3:#293548;
+  --t1:#f1f5f9;--t2:#94a3b8;--t3:#475569;--t4:#334155;
+  --violet:#7c3aed;--violet-l:#a78bfa;--violet-d:#4f46e5;
+  --emerald:#10b981;--rose:#f43f5e;--amber:#f59e0b;--cyan:#22d3ee;
+  --radius:10px;--radius-sm:7px;
+}
+body{background:var(--bg0);color:var(--t1);font-family:'Inter',system-ui,sans-serif;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+button{cursor:pointer;font-family:inherit;border:none;background:none;color:inherit}
+button:disabled{opacity:.4;cursor:not-allowed}
+input,textarea{font-family:inherit;color:var(--t1);background:transparent;border:none;outline:none}
+textarea{resize:none}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:4px}
+
+/* ── HEADER ── */
+#header{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;background:var(--bg1);border-bottom:1px solid var(--bg2);flex-shrink:0}
+#logo{width:34px;height:34px;border-radius:10px;background:var(--violet);display:flex;align-items:center;justify-content:center;font-size:17px}
+#app-name{font-size:13px;font-weight:600;letter-spacing:-.01em}
+#app-sub{font-size:11px;color:var(--t3);margin-top:1px}
+.badge{font-size:10px;padding:2px 7px;border-radius:20px;background:rgba(124,58,237,.2);color:var(--violet-l);border:1px solid rgba(124,58,237,.3);font-family:monospace;margin-left:6px}
+.status-dot{width:7px;height:7px;border-radius:50%;background:var(--emerald);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+#btn-reset{font-size:11px;color:var(--t3);padding:5px 10px;border-radius:var(--radius-sm);border:1px solid var(--bg2);transition:all .15s}
+#btn-reset:hover{color:var(--t1);background:var(--bg2)}
+
+/* ── MAIN LAYOUT ── */
+#main{display:flex;flex:1;overflow:hidden}
+
+/* ── LEFT CHAT ── */
+#chat-panel{display:flex;flex-direction:column;width:58%;border-right:1px solid var(--bg2)}
+#quick-bar{padding:8px 12px;background:rgba(15,23,42,.9);border-bottom:1px solid var(--bg2);flex-shrink:0}
+#quick-label{font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+#quick-btns{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.quick-btn{flex-shrink:0;font-size:11px;padding:4px 11px;border-radius:20px;background:var(--bg2);color:var(--t2);border:1px solid var(--t4);white-space:nowrap;transition:all .15s}
+.quick-btn:hover:not(:disabled){background:var(--bg3);color:var(--t1)}
+
+#messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px}
+.msg{display:flex;gap:9px;align-items:flex-end}
+.msg.user{flex-direction:row-reverse}
+.avatar{width:30px;height:30px;border-radius:10px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px}
+.avatar.bot{background:var(--bg2)}
+.avatar.user{background:var(--violet)}
+.bubble{max-width:76%;border-radius:16px;padding:10px 14px;font-size:13px;line-height:1.55}
+.bubble.bot{background:var(--bg2);border-radius:16px 16px 16px 4px;border:1px solid rgba(255,255,255,.04)}
+.bubble.user{background:var(--violet);border-radius:16px 16px 4px 16px}
+.bubble.error{background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.3);color:#fca5a5;border-radius:16px 16px 16px 4px}
+.bubble p{white-space:pre-wrap}
+.bubble .ts{font-size:10px;margin-top:5px;color:rgba(255,255,255,.3)}
+.bubble.bot .ts,.bubble.error .ts{color:var(--t4)}
+.typing{display:flex;gap:4px;padding:12px 14px;background:var(--bg2);border-radius:16px 16px 16px 4px;border:1px solid rgba(255,255,255,.04)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--t3);animation:bounce 1.2s infinite}
+.dot:nth-child(2){animation-delay:.13s}
+.dot:nth-child(3){animation-delay:.26s}
+@keyframes bounce{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-6px)}}
+
+#input-area{padding:12px;background:var(--bg1);border-top:1px solid var(--bg2);flex-shrink:0}
+#voice-status{font-size:11px;color:var(--rose);margin-bottom:6px;display:none;align-items:center;gap:6px}
+#voice-status .rdot{width:6px;height:6px;border-radius:50%;background:var(--rose);animation:pulse 1s infinite}
+#input-row{display:flex;gap:8px;align-items:flex-end}
+#input-wrap{flex:1;background:var(--bg2);border-radius:var(--radius);border:1px solid var(--t4);padding:10px 14px;transition:border-color .15s}
+#input-wrap:focus-within{border-color:var(--violet)}
+#msg-input{width:100%;font-size:13px;line-height:1.5;max-height:100px;color:var(--t1)}
+#msg-input::placeholder{color:var(--t3)}
+.icon-btn{width:38px;height:38px;border-radius:var(--radius-sm);border:1px solid var(--t4);display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .15s;flex-shrink:0}
+#btn-voice{background:var(--bg2);color:var(--t2)}
+#btn-voice:hover:not(:disabled){color:var(--t1);border-color:var(--t2)}
+#btn-voice.listening{background:var(--rose);border-color:#be123c;color:#fff}
+#btn-send{background:var(--violet);border-color:var(--violet-d);color:#fff}
+#btn-send:hover:not(:disabled){background:var(--violet-d)}
+
+/* ── RIGHT ADMIN ── */
+#admin-panel{display:flex;flex-direction:column;width:42%}
+#stats-bar{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--bg2);flex-shrink:0}
+.stat{padding:9px 6px;text-align:center;border-right:1px solid var(--bg2)}
+.stat:last-child{border-right:none}
+.stat-val{font-size:21px;font-weight:700;font-variant-numeric:tabular-nums}
+.stat-lbl{font-size:10px;color:var(--t3);margin-top:1px}
+#tabs{display:flex;border-bottom:1px solid var(--bg2);flex-shrink:0}
+.tab{flex:1;padding:9px 4px;font-size:11px;font-weight:500;border-bottom:2px solid transparent;color:var(--t3);transition:all .15s;text-align:center}
+.tab.active{color:var(--violet-l);border-bottom-color:var(--violet)}
+#tab-content{flex:1;overflow:hidden;display:flex;flex-direction:column}
+
+/* ── LOGS ── */
+#context-cards{padding:10px;border-bottom:1px solid var(--bg2);flex-shrink:0;display:flex;flex-direction:column;gap:7px}
+#context-cards:empty{display:none}
+.ctx-card{background:var(--bg1);border-radius:var(--radius);padding:10px 12px;border:1px solid var(--bg2)}
+.ctx-label{font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.ctx-name{font-size:13px;font-weight:600}
+.ctx-meta{display:flex;gap:10px;margin-top:3px;flex-wrap:wrap;align-items:center}
+.ctx-meta span{font-size:11px;color:var(--t3)}
+.tier-Gold{color:#fbbf24}.tier-Platinum{color:#67e8f9}.tier-Silver{color:#94a3b8}.tier-Bronze{color:#fb923c}
+.pill{font-size:10px;padding:1px 7px;border-radius:5px}
+.pill-sale{background:rgba(251,146,60,.15);color:#fb923c;border:1px solid rgba(251,146,60,.3)}
+.pill-digital{background:rgba(96,165,250,.15);color:#60a5fa;border:1px solid rgba(96,165,250,.3)}
+.pill-custom{background:rgba(167,139,250,.15);color:#a78bfa;border:1px solid rgba(167,139,250,.3)}
+.decision-card{border-radius:var(--radius);padding:10px 12px}
+.decision-card.APPROVED{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.3)}
+.decision-card.DENIED{background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.3)}
+.decision-card.ESCALATED{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3)}
+.decision-title{font-size:14px;font-weight:700;display:flex;align-items:center;gap:7px}
+.decision-title.APPROVED{color:#34d399}.decision-title.DENIED{color:#f87171}.decision-title.ESCALATED{color:#fbbf24}
+.decision-ref{font-size:10px;color:var(--t4);margin-top:3px;font-family:monospace}
+
+#log-scroll{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:4px}
+#log-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:var(--t4);gap:6px}
+#log-empty .icon{font-size:30px;opacity:.3}
+.log-entry{display:flex;gap:8px;align-items:flex-start;padding:7px 10px;border-radius:8px;animation:fadeIn .2s ease-out;flex-shrink:0}
+@keyframes fadeIn{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+.log-icon{font-size:11px;flex-shrink:0;margin-top:1px}
+.log-body{flex:1;min-width:0}
+.log-msg{font-size:11px;color:#cbd5e1;font-family:monospace;word-break:break-all;line-height:1.4}
+.log-sub{font-size:11px;margin-top:2px;font-family:monospace}
+.log-time{font-size:10px;color:var(--t4);flex-shrink:0;font-family:monospace}
+.log-api_call{background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.15)}
+.log-reasoning{background:rgba(147,51,234,.06);border:1px solid rgba(147,51,234,.12)}
+.log-tool_call{background:rgba(8,145,178,.1);border:1px solid rgba(8,145,178,.2)}
+.log-tool_result{background:rgba(5,150,105,.07);border:1px solid rgba(5,150,105,.15)}
+.log-user_input{background:rgba(71,85,105,.08);border:1px solid rgba(71,85,105,.15)}
+.log-error{background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.25)}
+.processing{font-size:11px;color:var(--violet-l);padding:6px 10px;font-family:monospace;display:none;align-items:center;gap:6px;flex-shrink:0}
+.spin{display:inline-block;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── CRM TAB ── */
+#crm-scroll{flex:1;overflow-y:auto;padding:10px}
+.crm-header{font-size:10px;color:var(--t4);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px}
+.crm-card{background:var(--bg1);border-radius:var(--radius);padding:10px 12px;border:1px solid var(--bg2);margin-bottom:6px;transition:border-color .15s}
+.crm-card:hover{border-color:var(--bg3)}
+.crm-top{display:flex;justify-content:space-between;margin-bottom:3px}
+.crm-name{font-size:12px;font-weight:600;color:var(--t1)}
+.crm-email{font-size:11px;color:var(--t3);margin-bottom:5px}
+.crm-meta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:5px}
+.crm-meta span{font-size:10px;color:var(--t4)}
+.crm-orders{display:flex;flex-wrap:wrap;gap:4px}
+.order-pill{font-size:9px;padding:1px 6px;border-radius:4px;background:var(--bg2);color:var(--t3);border:1px solid var(--t4);font-family:monospace}
+
+/* ── POLICY TAB ── */
+#policy-scroll{flex:1;overflow-y:auto;padding:14px}
+#policy-scroll pre{font-size:11px;color:#64748b;white-space:pre-wrap;font-family:monospace;line-height:1.7}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="header">
+  <div style="display:flex;align-items:center;gap:10px">
+    <div id="logo">🛡</div>
+    <div>
+      <div style="display:flex;align-items:center">
+        <span id="app-name">ShopEase Refund Agent</span>
+        <span class="badge">v2.1</span>
+      </div>
+      <div id="app-sub">FastAPI · OpenAI GPT-4o · Function Calling</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px">
+    <div style="display:flex;align-items:center;gap:6px">
+      <div class="status-dot"></div>
+      <span style="font-size:11px;color:var(--t3)">Agent Online</span>
+    </div>
+    <button id="btn-reset" onclick="resetSession()">↺ New Session</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- LEFT: CHAT -->
+  <div id="chat-panel">
+    <div id="quick-bar">
+      <div id="quick-label">Test Scenarios</div>
+      <div id="quick-btns"></div>
+    </div>
+    <div id="messages"></div>
+    <div id="input-area">
+      <div id="voice-status">
+        <span class="rdot"></span> Listening — speak your request
+      </div>
+      <div id="input-row">
+        <div id="input-wrap">
+          <textarea id="msg-input" rows="1" placeholder="Describe your refund request…"></textarea>
+        </div>
+        <button class="icon-btn" id="btn-voice" title="Voice input" onclick="toggleVoice()">🎤</button>
+        <button class="icon-btn" id="btn-send" title="Send" onclick="sendMessage()">➤</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: ADMIN -->
+  <div id="admin-panel">
+    <div id="stats-bar">
+      <div class="stat"><div class="stat-val" id="stat-total" style="color:var(--t1)">0</div><div class="stat-lbl">Processed</div></div>
+      <div class="stat"><div class="stat-val" id="stat-approved" style="color:var(--emerald)">0</div><div class="stat-lbl">Approved</div></div>
+      <div class="stat"><div class="stat-val" id="stat-denied" style="color:var(--rose)">0</div><div class="stat-lbl">Denied</div></div>
+      <div class="stat"><div class="stat-val" id="stat-escalated" style="color:var(--amber)">0</div><div class="stat-lbl">Escalated</div></div>
+    </div>
+    <div id="tabs">
+      <button class="tab active" onclick="switchTab('logs',this)">🔬 Reasoning</button>
+      <button class="tab" onclick="switchTab('crm',this)">🗄 CRM</button>
+      <button class="tab" onclick="switchTab('policy',this)">📋 Policy</button>
+    </div>
+
+    <!-- LOGS TAB -->
+    <div id="tab-logs" id="tab-content" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+      <div id="context-cards"></div>
+      <div id="log-scroll">
+        <div id="log-empty">
+          <span class="icon">🔬</span>
+          <span style="font-size:12px">Agent reasoning streams here in real time</span>
+        </div>
+      </div>
+      <div class="processing" id="processing-indicator">
+        <span class="spin">⟳</span> Agent processing…
+      </div>
+    </div>
+
+    <!-- CRM TAB (hidden initially) -->
+    <div id="tab-crm" style="flex:1;overflow:hidden;display:none;flex-direction:column">
+      <div id="crm-scroll"><div class="crm-header" id="crm-header"></div><div id="crm-list"></div></div>
+    </div>
+
+    <!-- POLICY TAB (hidden initially) -->
+    <div id="tab-policy" style="flex:1;overflow:hidden;display:none;flex-direction:column">
+      <div id="policy-scroll"><pre id="policy-text"></pre></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+const API = '';   // same origin; change to http://localhost:8000 for dev
+let conversationHistory = [];
+let isLoading = false;
+let activeCustomer = null;
+let activeOrder = null;
+let lastDecision = null;
+let stats = {total:0,approved:0,denied:0,escalated:0};
+let recognition = null;
+let isListening = false;
+
+const GREETING = "Hello! I'm ShopEase's AI Refund Agent.\n\nTo get started, please share your name or email address, along with the order ID you'd like to discuss.";
+
+const QUICK_SCENARIOS = [
+  {l:"🎧 Defective electronics", m:"Hi, I'm Alice Johnson (alice.johnson@email.com). I need a refund for order ORD-1001 — my headphones are defective, the left ear produces no audio."},
+  {l:"⏰ Expired return window",  m:"Hi, Frank Miller here. I want to return my winter jacket from order ORD-1006 — I just never ended up using it."},
+  {l:"💻 Digital product",        m:"Hi, I'm David Wilson. I bought a Python programming course (ORD-1004) and want a refund — it was too advanced for me."},
+  {l:"📺 High-value escalation",  m:"Hello, I'm Grace Lee, grace.lee@email.com. My 4K TV (ORD-1007) has dead pixels all over the screen — I need a full refund."},
+  {l:"🏷️ Final sale denial",      m:"Hi, Liam Jackson here. The jeans I ordered (ORD-1012) don't fit, I need to return them."},
+];
+
+// ── Init ───────────────────────────────────────────────────────────────────
+(async function init() {
+  renderQuickButtons();
+  appendBotMessage(GREETING);
+  await loadCRMData();
+  await loadPolicy();
+})();
+
+// ── Rendering helpers ──────────────────────────────────────────────────────
+function renderQuickButtons() {
+  const bar = document.getElementById('quick-btns');
+  QUICK_SCENARIOS.forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'quick-btn';
+    btn.textContent = s.l;
+    btn.onclick = () => sendMessage(s.m);
+    bar.appendChild(btn);
+  });
+}
+
+function appendBotMessage(text, isError=false) {
+  const el = document.createElement('div');
+  el.className = 'msg';
+  el.innerHTML = `
+    <div class="avatar bot">🤖</div>
+    <div class="bubble ${isError?'error':'bot'}">
+      <p>${escHtml(text)}</p>
+      <div class="ts">${now()}</div>
+    </div>`;
+  appendMsg(el);
+}
+
+function appendUserMessage(text) {
+  const el = document.createElement('div');
+  el.className = 'msg user';
+  el.innerHTML = `
+    <div class="avatar user">👤</div>
+    <div class="bubble user">
+      <p>${escHtml(text)}</p>
+      <div class="ts">${now()}</div>
+    </div>`;
+  appendMsg(el);
+}
+
+function showTyping() {
+  const el = document.createElement('div');
+  el.className = 'msg'; el.id = 'typing-indicator';
+  el.innerHTML = `<div class="avatar bot">🤖</div><div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+  appendMsg(el);
+}
+
+function removeTyping() {
+  document.getElementById('typing-indicator')?.remove();
+}
+
+function appendMsg(el) {
+  const msgs = document.getElementById('messages');
+  msgs.appendChild(el);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+// ── Send message ───────────────────────────────────────────────────────────
+async function sendMessage(override) {
+  const input = document.getElementById('msg-input');
+  const text = (override || input.value).trim();
+  if (!text || isLoading) return;
+
+  setLoading(true);
+  input.value = '';
+  autoResize(input);
+
+  appendUserMessage(text);
+  addLog({type:'user_input', message:`"${text.slice(0,80)}${text.length>80?'…':''}"`});
+  showTyping();
+
+  conversationHistory.push({role:'user', content:text});
+
+  try {
+    await streamChat(conversationHistory);
+  } catch(e) {
+    removeTyping();
+    appendBotMessage('I encountered a technical issue. Please try again.', true);
+    addLog({type:'error', message: e.message});
+  } finally {
+    setLoading(false);
+  }
+}
+
+// ── SSE streaming ──────────────────────────────────────────────────────────
+async function streamChat(messages) {
+  const response = await fetch(`${API}/api/chat/stream`, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({messages})
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(()=>({}));
+    throw new Error(err.detail || `HTTP ${response.status}`);
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const {done, value} = await reader.read();
+    if (done) break;
+
+    buffer += decoder.decode(value, {stream:true});
+    const lines = buffer.split('\n');
+    buffer = lines.pop(); // keep incomplete line
+
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      try {
+        const event = JSON.parse(line.slice(6));
+        handleSSEEvent(event);
+      } catch(e) { /* skip malformed */ }
+    }
+  }
+}
+
+function handleSSEEvent(event) {
+  if (event.type === 'log') {
+    addLog(event.data);
+    // Extract context from tool results
+    if (event.data.type === 'tool_result' && event.data.result) {
+      extractContext(event.data.tool, event.data.result);
+    }
+  } else if (event.type === 'message') {
+    removeTyping();
+    conversationHistory.push({role:'assistant', content:event.content});
+    appendBotMessage(event.content);
+  } else if (event.type === 'error') {
+    removeTyping();
+    appendBotMessage(`Error: ${event.content}`, true);
+    addLog({type:'error', message: event.content});
+  }
+}
+
+// ── Context extraction ─────────────────────────────────────────────────────
+function extractContext(tool, result) {
+  if (tool === 'search_customer' && result.found) {
+    activeCustomer = result.customers?.[0] || null;
+    renderContextCards();
+  }
+  if (tool === 'get_order_details' && result.found && result.order) {
+    activeOrder = result.order;
+    renderContextCards();
+  }
+  if (tool === 'process_refund_decision' && result.success) {
+    lastDecision = result;
+    const d = result.decision;
+    stats.total++;
+    if (d==='APPROVED') stats.approved++;
+    if (d==='DENIED') stats.denied++;
+    if (d==='ESCALATED') stats.escalated++;
+    updateStats();
+    renderContextCards();
+  }
+}
+
+function renderContextCards() {
+  const c = document.getElementById('context-cards');
+  c.innerHTML = '';
+
+  if (activeCustomer) {
+    c.innerHTML += `
+      <div class="ctx-card">
+        <div class="ctx-label">Customer Identified</div>
+        <div class="ctx-name">${escHtml(activeCustomer.name)}</div>
+        <div class="ctx-meta">
+          <span class="tier-${activeCustomer.tier}">${activeCustomer.tier}</span>
+          <span>${activeCustomer.refunds_this_year}/2 refunds YTD</span>
+          <span>${activeCustomer.total_orders} orders</span>
+          ${activeCustomer.flagged ? '<span style="color:var(--rose)">⚠ Flagged</span>' : ''}
+        </div>
+      </div>`;
+  }
+
+  if (activeOrder) {
+    const pills = [
+      activeOrder.is_sale_item ? '<span class="pill pill-sale">FINAL SALE</span>' : '',
+      activeOrder.is_digital   ? '<span class="pill pill-digital">DIGITAL</span>'  : '',
+      activeOrder.is_customized? '<span class="pill pill-custom">CUSTOM</span>'    : '',
+    ].join('');
+    c.innerHTML += `
+      <div class="ctx-card">
+        <div class="ctx-label">Order Under Review</div>
+        <div class="ctx-name">${escHtml(activeOrder.product)}</div>
+        <div class="ctx-meta">
+          <span style="color:var(--emerald);font-weight:600">$${activeOrder.price.toFixed(2)}</span>
+          <span>${activeOrder.category}</span>
+          ${pills}
+        </div>
+      </div>`;
+  }
+
+  if (lastDecision) {
+    const d = lastDecision.decision;
+    const icon = {APPROVED:'✅',DENIED:'❌',ESCALATED:'🔶'}[d];
+    const ref = lastDecision.refund_id || lastDecision.escalation_id || '';
+    const amt = d==='APPROVED' ? ` — $${Number(lastDecision.amount).toFixed(2)}` : '';
+    c.innerHTML += `
+      <div class="decision-card ${d}">
+        <div class="decision-title ${d}">${icon} ${d}${amt}</div>
+        <div class="decision-ref">${ref}${lastDecision.processing_time?' · '+lastDecision.processing_time:''}</div>
+      </div>`;
+  }
+}
+
+// ── Log panel ─────────────────────────────────────────────────────────────
+const LOG_META = {
+  api_call:    {icon:'⚡', cls:'log-api_call',   sub: null},
+  reasoning:   {icon:'🧠', cls:'log-reasoning',  sub: null},
+  tool_call:   {icon:'🔧', cls:'log-tool_call',   sub: null},
+  tool_result: {icon:'↩',  cls:'log-tool_result', sub: makeSub},
+  user_input:  {icon:'💬', cls:'log-user_input',  sub: null},
+  error:       {icon:'✗',  cls:'log-error',       sub: null},
+};
+
+function makeSub(log) {
+  if (!log.result) return null;
+  const r = log.result;
+  if (log.tool === 'search_customer')
+    return r.found
+      ? `<span style="color:var(--cyan)">Found: ${escHtml(r.customers?.[0]?.name||'')}</span>`
+      : `<span style="color:var(--rose)">Not found</span>`;
+  if (log.tool === 'validate_refund_eligibility')
+    return r.eligible
+      ? `<span style="color:#34d399">✓ Eligible for refund</span>`
+      : `<span style="color:var(--rose)">✗ ${escHtml(r.blocking_issues?.[0]?.slice(0,60)||'')}</span>`;
+  if (log.tool === 'process_refund_decision' && r.success) {
+    const col = {APPROVED:'#34d399',DENIED:'var(--rose)',ESCALATED:'var(--amber)'}[r.decision];
+    return `<span style="color:${col}">Decision committed: ${r.decision}${r.decision==='APPROVED'?' — $'+Number(r.amount).toFixed(2):''}</span>`;
+  }
+  if (log.tool === 'get_order_details')
+    return r.found
+      ? `<span style="color:var(--cyan)">${escHtml(r.order?.product || r.count+' orders found')}</span>`
+      : `<span style="color:var(--rose)">Not found</span>`;
+  return null;
+}
+
+function addLog(log) {
+  document.getElementById('log-empty')?.remove();
+
+  const meta = LOG_META[log.type] || {icon:'·', cls:'log-user_input', sub:null};
+  const sub = typeof meta.sub === 'function' ? meta.sub(log) : null;
+  const t = new Date().toLocaleTimeString('en',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+  const el = document.createElement('div');
+  el.className = `log-entry ${meta.cls}`;
+  el.innerHTML = `
+    <span class="log-icon">${meta.icon}</span>
+    <div class="log-body">
+      <div class="log-msg">${escHtml(log.message)}</div>
+      ${sub ? `<div class="log-sub">${sub}</div>` : ''}
+    </div>
+    <span class="log-time">${t}</span>`;
+
+  const scroll = document.getElementById('log-scroll');
+  scroll.appendChild(el);
+  scroll.scrollTop = scroll.scrollHeight;
+}
+
+// ── CRM / Policy ───────────────────────────────────────────────────────────
+async function loadCRMData() {
+  try {
+    const res = await fetch('/api/crm');
+    if (!res.ok) return buildStaticCRM();
+    const data = await res.json();
+    renderCRM(data.customers, data.orders);
+  } catch { buildStaticCRM(); }
+}
+
+function buildStaticCRM() {
+  // Fallback: load from embedded static data (same as data/customers.py)
+  const CUST = {
+    C001:{id:"C001",name:"Alice Johnson",email:"alice.johnson@email.com",tier:"Gold",refunds_this_year:0,total_orders:8,flagged:false},
+    C002:{id:"C002",name:"Bob Smith",email:"bob.smith@email.com",tier:"Silver",refunds_this_year:1,total_orders:4,flagged:false},
+    C003:{id:"C003",name:"Carol Davis",email:"carol.davis@email.com",tier:"Platinum",refunds_this_year:3,total_orders:22,flagged:true},
+    C004:{id:"C004",name:"David Wilson",email:"david.wilson@email.com",tier:"Bronze",refunds_this_year:0,total_orders:1,flagged:false},
+    C005:{id:"C005",name:"Emma Brown",email:"emma.brown@email.com",tier:"Gold",refunds_this_year:1,total_orders:12,flagged:false},
+    C006:{id:"C006",name:"Frank Miller",email:"frank.miller@email.com",tier:"Silver",refunds_this_year:0,total_orders:5,flagged:false},
+    C007:{id:"C007",name:"Grace Lee",email:"grace.lee@email.com",tier:"Platinum",refunds_this_year:0,total_orders:35,flagged:false},
+    C008:{id:"C008",name:"Henry Taylor",email:"henry.taylor@email.com",tier:"Bronze",refunds_this_year:0,total_orders:2,flagged:false},
+    C009:{id:"C009",name:"Isabella Anderson",email:"isabella.a@email.com",tier:"Silver",refunds_this_year:2,total_orders:9,flagged:false},
+    C010:{id:"C010",name:"James Martinez",email:"james.m@email.com",tier:"Gold",refunds_this_year:1,total_orders:15,flagged:false},
+    C011:{id:"C011",name:"Karen Thomas",email:"karen.t@email.com",tier:"Bronze",refunds_this_year:0,total_orders:3,flagged:false},
+    C012:{id:"C012",name:"Liam Jackson",email:"liam.j@email.com",tier:"Silver",refunds_this_year:0,total_orders:7,flagged:false},
+    C013:{id:"C013",name:"Mia White",email:"mia.white@email.com",tier:"Gold",refunds_this_year:1,total_orders:11,flagged:false},
+    C014:{id:"C014",name:"Noah Harris",email:"noah.h@email.com",tier:"Platinum",refunds_this_year:0,total_orders:28,flagged:false},
+    C015:{id:"C015",name:"Olivia Martin",email:"olivia.m@email.com",tier:"Bronze",refunds_this_year:1,total_orders:2,flagged:false},
+  };
+  const ORDS = {
+    "ORD-1001":{customer_id:"C001"},"ORD-1002":{customer_id:"C002"},"ORD-1003":{customer_id:"C003"},
+    "ORD-1004":{customer_id:"C004"},"ORD-1005":{customer_id:"C005"},"ORD-1006":{customer_id:"C006"},
+    "ORD-1007":{customer_id:"C007"},"ORD-1008":{customer_id:"C008"},"ORD-1009":{customer_id:"C009"},
+    "ORD-1010":{customer_id:"C010"},"ORD-1011":{customer_id:"C011"},"ORD-1012":{customer_id:"C012"},
+    "ORD-1013":{customer_id:"C013"},"ORD-1014":{customer_id:"C014"},"ORD-1015":{customer_id:"C015"},
+  };
+  renderCRM(Object.values(CUST), ORDS);
+}
+
+function renderCRM(customers, orders) {
+  document.getElementById('crm-header').textContent = `CRM Database — ${customers.length} Profiles`;
+  const list = document.getElementById('crm-list');
+  list.innerHTML = '';
+  customers.forEach(c => {
+    const orderIds = Object.entries(orders||{}).filter(([,o])=>o.customer_id===c.id).map(([id])=>id);
+    list.innerHTML += `
+      <div class="crm-card">
+        <div class="crm-top">
+          <span class="crm-name">${escHtml(c.name)}</span>
+          <span class="tier-${c.tier}">${c.tier}</span>
+        </div>
+        <div class="crm-email">${escHtml(c.email)}</div>
+        <div class="crm-meta">
+          <span style="font-family:monospace">${c.id}</span>
+          <span>${c.total_orders} orders</span>
+          <span style="color:${c.refunds_this_year>=2?'var(--rose)':'var(--t4)'}">${c.refunds_this_year}/2 refunds</span>
+          ${c.flagged?'<span style="color:var(--rose)">⚠ Flagged</span>':''}
+        </div>
+        <div class="crm-orders">${orderIds.map(id=>`<span class="order-pill">${id}</span>`).join('')}</div>
+      </div>`;
+  });
+}
+
+async function loadPolicy() {
+  const POLICY = `SHOPEASE REFUND POLICY v2.1 — Effective January 1, 2024
+════════════════════════════════════════════════════════
+
+§1  RETURN WINDOWS
+    Standard products .............. 30 days from delivery date
+    Electronics .................... 15 days from delivery date
+    Health / Beauty / Perishables .. 7 days from delivery date
+    Digital downloads .............. NON-REFUNDABLE (no exceptions)
+
+§2  CONDITION REQUIREMENTS
+    • Items must be unused and in original packaging with all tags
+    • Defective / damaged items eligible regardless of delivery date
+    • Photo or video proof required for all damage / defect claims
+    • Items over $300 with defects require manager-verified photo proof
+
+§3  REFUND LIMITS PER ACCOUNT
+    • Maximum 2 refunds per customer account per calendar year
+    • Maximum refund amount: $500 per single transaction
+    • Orders exceeding $500 require mandatory manager escalation
+
+§4  ABSOLUTE EXCLUSIONS (zero exceptions)
+    • Items explicitly marked "FINAL SALE" at time of purchase
+    • Customized or personalized items of any kind
+    • Digital downloads, software licenses, streaming credits
+    • Any order without valid proof of purchase
+
+§5  SUSPICIOUS ACTIVITY FLAGS
+    • Customer with 3+ refunds in any 12-month period → Fraud review
+    • Same product refunded more than once → Automatic denial + escalation
+    • Account already flagged → Manager approval required before any action
+
+§6  PAYMENT & PROCESSING
+    • Approved refunds issued to original payment method only
+    • Processing time: 5–7 business days after approval
+    • Return shipping provided free of charge for defective items only
+    • Non-defective returns: customer bears return shipping costs`;
+  document.getElementById('policy-text').textContent = POLICY;
+}
+
+// ── UI helpers ─────────────────────────────────────────────────────────────
+function setLoading(v) {
+  isLoading = v;
+  document.querySelectorAll('.quick-btn, #btn-send').forEach(b => b.disabled = v);
+  document.getElementById('processing-indicator').style.display = v ? 'flex' : 'none';
+}
+
+function updateStats() {
+  document.getElementById('stat-total').textContent = stats.total;
+  document.getElementById('stat-approved').textContent = stats.approved;
+  document.getElementById('stat-denied').textContent = stats.denied;
+  document.getElementById('stat-escalated').textContent = stats.escalated;
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  ['logs','crm','policy'].forEach(t => {
+    const el = document.getElementById(`tab-${t}`);
+    if (el) el.style.display = t===name ? 'flex' : 'none';
+  });
+}
+
+function resetSession() {
+  conversationHistory = [];
+  activeCustomer = activeOrder = lastDecision = null;
+  document.getElementById('messages').innerHTML = '';
+  document.getElementById('log-scroll').innerHTML = '<div id="log-empty"><span class="icon">🔬</span><span style="font-size:12px">Agent reasoning streams here in real time</span></div>';
+  document.getElementById('context-cards').innerHTML = '';
+  stats = {total:0,approved:0,denied:0,escalated:0};
+  updateStats();
+  appendBotMessage(GREETING);
+}
+
+// ── Voice input ────────────────────────────────────────────────────────────
+function toggleVoice() {
+  if (isListening) { recognition?.stop(); return; }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { alert('Voice input requires Chrome or Edge.'); return; }
+  recognition = new SR();
+  recognition.continuous = false; recognition.interimResults = false; recognition.lang = 'en-US';
+  recognition.onresult = e => { document.getElementById('msg-input').value = e.results[0][0].transcript; };
+  recognition.onerror = recognition.onend = () => setListening(false);
+  recognition.start();
+  setListening(true);
+}
+function setListening(v) {
+  isListening = v;
+  const btn = document.getElementById('btn-voice');
+  const status = document.getElementById('voice-status');
+  btn.classList.toggle('listening', v);
+  btn.textContent = v ? '🔇' : '🎤';
+  status.style.display = v ? 'flex' : 'none';
+}
+
+// ── Textarea auto-resize ───────────────────────────────────────────────────
+const inp = document.getElementById('msg-input');
+inp.addEventListener('input', () => autoResize(inp));
+inp.addEventListener('keydown', e => { if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+function autoResize(el) { el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,100)+'px'; }
+
+// ── Utilities ──────────────────────────────────────────────────────────────
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function now() { return new Date().toLocaleTimeString(); }
+</script>
+</body>
+</html>

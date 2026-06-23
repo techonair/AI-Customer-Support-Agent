@@ -5,7 +5,7 @@ AI-powered e-commerce customer support agent that processes refund requests usin
 ## Stack
 | Layer | Tech |
 |---|---|
-| LLM | OpenAI GPT-4o (function calling) |
+| LLM | llama-3.3-70b-versatile (function calling) |
 | Backend | Python · FastAPI · SSE streaming |
 | Frontend | Vanilla JS · single HTML file · Web Speech API |
 | Agent pattern | Raw function-calling loop (4 tools) |
@@ -72,7 +72,7 @@ User message
      │
      ▼
 ┌─────────────────────────────────────┐
-│  GPT-4o  (system prompt + tools)    │
+│  LLAMA  (system prompt + tools)    │
 └─────────────────────────────────────┘
      │
      ├── tool_calls present? ──YES──► execute_tool() locally

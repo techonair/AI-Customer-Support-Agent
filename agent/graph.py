@@ -76,7 +76,7 @@ _llm = ChatOpenAI(model=_model_name, temperature=0, **_llm_kwargs).bind_tools(LA
 
 def agent_node(state: AgentState) -> dict:
     """
-    Call GPT-4o with the system prompt prepended to the current message list.
+    Call LLM with the system prompt prepended to the current message list.
     Returns the model's response (may contain tool_calls or a final answer).
     """
     messages = [SystemMessage(content=SYSTEM_PROMPT)] + state["messages"]

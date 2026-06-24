@@ -170,18 +170,8 @@ def process_refund_decision(
     if not customer or not order:
         return {"success": False, "error": "Invalid customer_id or order_id"}
 
-    # Validate decision to avoid processing undefined/invalid values
-    valid_decisions = {"APPROVED", "DENIED", "ESCALATED"}
-    if not isinstance(decision, str) or decision.upper() not in valid_decisions:
-        return {"success": False, "error": f"Invalid decision value: {decision}"}
-
-    decision = decision.upper()
-
     refund_id = f"REF-{random.randint(10000, 99999)}" if decision == "APPROVED" else None
     escalation_id = f"ESC-{random.randint(1000, 9999)}" if decision == "ESCALATED" else None
-
-    # Treat explicit 0.0 as a valid refund_amount; only use order price when refund_amount is None
-    amount = refund_amount if refund_amount is not None else (order["price"] if decision == "APPROVED" else 0)
 
     return {
         "success": True,
@@ -190,7 +180,7 @@ def process_refund_decision(
         "escalation_id": escalation_id,
         "customer_name": customer["name"],
         "product": order["product"],
-        "amount": amount,
+        "amount": refund_amount if refund_amount else (order["price"] if decision == "APPROVED" else 0),
         "policy_rationale": policy_rationale,
         "processing_time": "5–7 business days" if decision == "APPROVED" else None,
         "timestamp": TODAY,
